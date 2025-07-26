@@ -93,8 +93,7 @@
 
     let clicked = false;
 
-    // Kaçan buton
-    noBtn.addEventListener("mouseenter", () => {
+    function moveNoButton() {
       const maxX = container.clientWidth - noBtn.offsetWidth;
       const maxY = container.clientHeight - noBtn.offsetHeight;
       const randX = Math.random() * maxX;
@@ -102,9 +101,13 @@
 
       noBtn.style.left = `${randX}px`;
       noBtn.style.top = `${randY}px`;
-    });
+    }
 
-    // İlk tıklamada konfeti ve mesaj
+    // Mouse ve dokunma olayları ekle
+    noBtn.addEventListener("mouseenter", moveNoButton);
+    noBtn.addEventListener("touchstart", moveNoButton);
+    noBtn.addEventListener("mouseover", moveNoButton);
+
     yesBtn.addEventListener("click", () => {
       if (!clicked) {
         clicked = true;
@@ -112,7 +115,7 @@
         createConfetti(100);
       }
 
-      // Butonu biraz büyütmeye devam et
+      // Buton büyütme
       const scale = parseFloat(getComputedStyle(yesBtn).transform.split(',')[0].replace('matrix(', '')) || 1;
       const newScale = scale + 0.1;
       yesBtn.style.transform = `scale(${newScale}) translate(-50%, -50%)`;
