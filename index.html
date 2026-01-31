@@ -1,146 +1,1083 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Zorbalık Oyunu</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      background-color: #f5f5f5;
-      margin-top: 100px;
-      overflow: hidden;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bizim Hikayemiz ❤️</title>
 
-    h1 {
-      margin-bottom: 50px;
-    }
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&display=swap"
+        rel="stylesheet">
 
-    #container {
-      position: relative;
-      width: 100%;
-      height: 400px;
-    }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    button {
-      padding: 15px 30px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-      position: absolute;
-    }
+    <style>
+        /* ==========================================================================
+           GENEL AYARLAR VE DEĞİŞKENLER
+           ==========================================================================
+        */
+        :root {
+            --primary-color: #ff4d6d;
+            --secondary-color: #c9184a;
+            --bg-dark: #0f0f1a;
+            --text-light: #fff0f3;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    #yesBtn {
-      background-color: #4caf50;
-      color: white;
-      left: 40%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 2;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    #noBtn {
-      background-color: #f44336;
-      color: white;
-      left: 60%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 2;
-    }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
 
-    #message {
-      display: none;
-      font-size: 32px;
-      color: #4caf50;
-      margin-top: 40px;
-    }
+        /* Arkaplan Efekti (Hareketli Kalpler için Canvas alanı) */
+        #background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(to bottom, #0f0f1a, #2a0a18);
+        }
 
-    .confetti {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      background-color: red;
-      opacity: 0.8;
-      animation: fall 3s linear forwards;
-    }
+        /* ==========================================================================
+           HEADER / GİRİŞ BÖLÜMÜ
+           ==========================================================================
+        */
+        header {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            padding: 20px;
+        }
 
-    @keyframes fall {
-      to {
-        transform: translateY(100vh) rotate(360deg);
-        opacity: 0;
-      }
-    }
-  </style>
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 5rem;
+            color: var(--primary-color);
+            text-shadow: 0 0 20px rgba(255, 77, 109, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.8;
+            margin-bottom: 40px;
+        }
+
+        /* Sayaç Tasarımı */
+        .counter-wrapper {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .count-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: var(--glass-border);
+            padding: 20px;
+            border-radius: 15px;
+            min-width: 120px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .count-box span {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .count-box label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .scroll-down {
+            position: absolute;
+            bottom: 30px;
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+            cursor: pointer;
+            color: var(--primary-color);
+        }
+
+        /* ==========================================================================
+           TIMELINE (ZAMAN ÇİZELGESİ) TASARIMI
+           ==========================================================================
+        */
+        .timeline-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 20px;
+        }
+
+        /* Ortadaki Çizgi */
+        .timeline-container::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--primary-color), transparent);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+            opacity: 0;
+            /* Başlangıçta görünmez, JS ile gelecek */
+            transform: translateY(100px);
+            transition: all 1s ease;
+        }
+
+        .timeline-item.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Sol ve Sağ yerleşimler */
+        .left {
+            left: 0;
+        }
+
+        .right {
+            left: 50%;
+        }
+
+        /* Ortadaki Noktalar */
+        .timeline-item::after {
+            content: '❤';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            right: -20px;
+            background-color: var(--bg-dark);
+            border: 3px solid var(--primary-color);
+            top: 25px;
+            border-radius: 50%;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .right::after {
+            left: -20px;
+        }
+
+        /* İçerik Kutusu */
+        .content {
+            padding: 30px;
+            background: var(--card-bg);
+            border: var(--glass-border);
+            backdrop-filter: blur(5px);
+            position: relative;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s;
+        }
+
+        .content:hover {
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .content h2 {
+            font-family: 'Dancing Script', cursive;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .content .date {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 15px;
+            display: block;
+            font-style: italic;
+        }
+
+        .content p {
+            font-size: 1rem;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+
+        /* ==========================================================================
+           YENİ EKLENEN: KART İÇİ SLIDER CSS'LERİ
+           ==========================================================================
+        */
+        .timeline-slider {
+            position: relative;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Resimler varsayılan olarak gizli */
+        .timeline-slider img {
+            width: 100%;
+            display: none;
+            border-radius: 10px;
+            transition: transform 0.5s;
+        }
+
+        /* Sadece active class'ı olan görünür */
+        .timeline-slider img.active {
+            display: block;
+            animation: fade 0.5s;
+        }
+
+        .timeline-slider img:hover {
+            transform: scale(1.05);
+        }
+
+        /* İleri Geri Butonları (Kart İçi) */
+        .slider-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 2;
+            transition: 0.3s;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slider-nav:hover {
+            background-color: var(--primary-color);
+        }
+
+        .prev-btn {
+            left: 10px;
+        }
+
+        .next-btn {
+            right: 10px;
+        }
+
+        /* ========================================================================== */
+
+        /* Ok İşaretleri */
+        .left::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 35px;
+            width: 0;
+            z-index: 1;
+            right: 30px;
+            border: medium solid white;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent var(--card-bg);
+        }
+
+        .right::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 35px;
+            width: 0;
+            z-index: 1;
+            left: 30px;
+            border: medium solid white;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent var(--card-bg) transparent transparent;
+        }
+
+        /* ==========================================================================
+           SLIDER / FOTOĞRAF GALERİSİ (EN ALTTAKİ MANUEL OLAN) - GÜNCELLENDİ
+           ==========================================================================
+        */
+        .gallery-section {
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        .slider-container {
+            width: 90%;
+            max-width: 1000px;
+            /* Genişliği biraz artırdım */
+            height: 600px;
+            /* Sabit bir yükseklik belirledim */
+            margin: 50px auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            background-color: #000;
+            /* Resim kenarlarında boşluk kalırsa siyah görünsün */
+            display: flex;
+            /* İçeriği ortalamak için */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide {
+            display: none;
+            /* JS ile kontrol edilecek */
+            width: 100%;
+            height: 100%;
+            animation: fade 1.5s;
+        }
+
+        /* Resimlerin tam ve ortalı görünmesi için kilit nokta burası */
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Resmi kesmeden, orantılı bir şekilde sığdır */
+            object-position: center;
+            /* Ortala */
+        }
+
+        /* Yeni Galeri Butonları */
+        .prev,
+        .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            padding: 16px;
+            margin-top: -22px;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            user-select: none;
+            background-color: rgba(0, 0, 0, 0.3);
+            /* Hafif arka plan */
+            z-index: 10;
+            /* Resimlerin üzerinde görünsün */
+        }
+
+        .next {
+            right: 0;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .prev {
+            left: 0;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .prev:hover,
+        .next:hover {
+            background-color: var(--primary-color);
+            /* Hover rengi */
+        }
+
+        /* ==========================================================================
+           FOOTER / KAPANIŞ
+           ==========================================================================
+        */
+        footer {
+            padding: 100px 20px;
+            text-align: center;
+            background: linear-gradient(to top, #000, transparent);
+        }
+
+        .final-msg {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .btn-love {
+            padding: 15px 40px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px var(--primary-color);
+        }
+
+        .btn-love:hover {
+            transform: scale(1.1);
+            background: #fff;
+            color: var(--primary-color);
+        }
+
+        /* ==========================================================================
+           ANIMASYON KEYFRAMES
+           ==========================================================================
+        */
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--primary-color);
+            }
+
+            to {
+                text-shadow: 0 0 20px #fff, 0 0 30px var(--secondary-color), 0 0 40px var(--secondary-color);
+            }
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-30px);
+            }
+
+            60% {
+                transform: translateY(-15px);
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes fade {
+            from {
+                opacity: .4
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        /* ==========================================================================
+           RESPONSIVE (MOBİL UYUMLULUK)
+           ==========================================================================
+        */
+        @media screen and (max-width: 600px) {
+            .timeline-container::after {
+                left: 31px;
+            }
+
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+
+            .timeline-item::after {
+                left: 10px;
+            }
+
+            .left::before,
+            .right::before {
+                left: 60px;
+                border: medium solid white;
+                border-width: 10px 10px 10px 0;
+                border-color: transparent var(--card-bg) transparent transparent;
+            }
+
+            .left,
+            .right {
+                left: 0%;
+            }
+
+            h1 {
+                font-size: 3rem;
+            }
+
+            .count-box {
+                min-width: 80px;
+                padding: 10px;
+            }
+
+            .count-box span {
+                font-size: 1.5rem;
+            }
+
+            /* Mobilde galeri yüksekliğini biraz azaltalım */
+            .slider-container {
+                height: 400px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-  <h1>Sevgilimi zorbalamayı bırakacak mıyım?</h1>
+    <canvas id="background-canvas"></canvas>
 
-  <div id="container">
-    <button id="yesBtn">Zorbalamayı Bırakacağım</button>
-    <button id="noBtn">Hayır, Zorbalayacağım</button>
-  </div>
+    <header>
+        <h1>Seninle Geçen Her An...</h1>
+        <p class="subtitle">2023 Kasım'da başlayan bu masal, 29 Aralık'ta adını buldu...</p>
 
-  <div id="message">🎉 Afferin, sözümü dinledin! 🎉</div>
+        <div class="counter-wrapper">
+            <div class="count-box">
+                <span id="days">00</span>
+                <label>Gün</label>
+            </div>
+            <div class="count-box">
+                <span id="hours">00</span>
+                <label>Saat</label>
+            </div>
+            <div class="count-box">
+                <span id="minutes">00</span>
+                <label>Dakika</label>
+            </div>
+            <div class="count-box">
+                <span id="seconds">00</span>
+                <label>Saniye</label>
+            </div>
+        </div>
 
-  <script>
-    const yesBtn = document.getElementById("yesBtn");
-    const noBtn = document.getElementById("noBtn");
-    const message = document.getElementById("message");
-    const container = document.getElementById("container");
+        <div class="scroll-down" onclick="scrollToTimeline()">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </header>
 
-    let clicked = false;
+    <div class="timeline-container" id="timeline">
 
-    function moveNoButton() {
-      const maxX = container.clientWidth - noBtn.offsetWidth;
-      const maxY = container.clientHeight - noBtn.offsetHeight;
-      const randX = Math.random() * maxX;
-      const randY = Math.random() * maxY;
+        <div class="timeline-item left">
+            <div class="content">
+                <h2>İlk Tanışma</h2>
+                <span class="date">Kasım 2023</span>
+                <p>Her şeyin başladığı o an... Belki sıradan bir gündü ama benim hayatımın dönüm noktası oldu. Senin
+                    bana instagramdan istek attığın.
+                    benim ise ALLAH bu güzellik ne diye hemen kabul edip sana yazdıgım ilk zamanlar hiç aklımdan
+                    çıkmıyor ya o gun MAL hamdi profilini acık
+                    tutmasaydı ya o fotograf hiç paylaşılmasaydı aslına bakarsan tanışmamız cidden cok buyuk tesaduf ve
+                    bu hayatımda başıma gelmiş en güzel tesaduf bence...
+                </p>
 
-      noBtn.style.left = `${randX}px`;
-      noBtn.style.top = `${randY}px`;
-    }
+                <div class="timeline-slider">
+                    <img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=600&auto=format&fit=crop"
+                        class="active" alt="Tanışma 1">
+                    <img src="https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?q=80&w=600&auto=format&fit=crop"
+                        alt="Tanışma 2">
+                    <img src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?q=80&w=600&auto=format&fit=crop"
+                        alt="Tanışma 3">
 
-    // Mouse ve dokunma olayları ekle
-    noBtn.addEventListener("mouseenter", moveNoButton);
-    noBtn.addEventListener("touchstart", moveNoButton);
-    noBtn.addEventListener("mouseover", moveNoButton);
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
 
-    yesBtn.addEventListener("click", () => {
-      if (!clicked) {
-        clicked = true;
-        message.style.display = "block";
-        createConfetti(100);
-      }
+        <div class="timeline-item right">
+            <div class="content">
+                <h2>İlk Heyecan</h2>
+                <span class="date">Kasım 2023 Sonu</span>
+                <p>İlk bulusmamız ve ilk defa seni Villada gorunce hislerimi asla anlatamam sana yanında Mirza olması
+                    ayrı bi muhabbet zaten snlfdsfklnfsdl
+                    neyse konuya donelim ilk bulusmamız beraber sahile inmemiz sanki ikimzde birnirimizi 40 yıldır
+                    tanıyomus gibi güvenmemiz beraber duvara ve camiye işememiz
+                    dönüşünde ise benim 2. aşkım olan MANSOOR BHAİİ ile aynı arabaya binip bizi bırakması falan asla
+                    unutulamazzz...
+                </p>
+                <div class="timeline-slider">
 
-      // Buton büyütme
-      const scale = parseFloat(getComputedStyle(yesBtn).transform.split(',')[0].replace('matrix(', '')) || 1;
-      const newScale = scale + 0.1;
-      yesBtn.style.transform = `scale(${newScale}) translate(-50%, -50%)`;
-    });
+                    <img src="IMG-20231125-WA0003.jpg" class="active" alt="Sevgili 1">
+                    <img src="IMG-20231125-WA0005.jpg" alt="Sevgili 2">
 
-    function createConfetti(amount) {
-      for (let i = 0; i < amount; i++) {
-        const confetti = document.createElement("div");
-        confetti.classList.add("confetti");
-        confetti.style.left = `${Math.random() * window.innerWidth}px`;
-        confetti.style.top = `${Math.random() * -100}px`;
-        confetti.style.backgroundColor = randomColor();
-        confetti.style.animationDuration = `${2 + Math.random() * 3}s`;
-        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-        document.body.appendChild(confetti);
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
 
-        setTimeout(() => confetti.remove(), 5000);
-      }
-    }
+        <div class="timeline-item left">
+            <div class="content">
+                <h2>Ve "BİZ" Olduk ❤️</h2>
+                <span class="date">29 Aralık 2023</span>
+                <p>Ya şimdi aslına bakarsan biz daha erken sevgili olduk ama senin haberin yoktu sen illa tuturdun
+                    teklif de teklif dedim yani hay allah çattık neyse dedim
+                    hadi ediyim çıkma teklifi cok agladı gariban yazık tesadüfen 29 aralıga denk geldi olsun iyi de oldu
+                    (ya dogum gununde etseydim!!??).
+                </p>
+                <div class="timeline-slider">
+                    <img src="IMG-20240713-WA0016.jpg" class="active" alt="Tanışma 1">
+                    <img src="IMG-20240713-WA0025.jpg" alt="Tanışma 2">
+                    <img src="IMG-20240713-WA0026.jpg" alt="Tanışma 3">
 
-    function randomColor() {
-      const colors = ['#f44336', '#e91e63', '#9c27b0', '#3f51b5', '#03a9f4', '#4caf50', '#ffeb3b', '#ff9800'];
-      return colors[Math.floor(Math.random() * colors.length)];
-    }
-  </script>
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
 
+        <div class="timeline-item right">
+            <div class="content">
+                <h2>Yeni Yıl, Yeni Biz</h2>
+                <span class="date">Ocak 2024</span>
+                <p>Seninle girdiğim ilk yılbaşı ve hayatımda unutamayacagım yılbaşlarından birisi acıkcası kadronun
+                    iyiligi beni bitirdi Berkin ve Özgeyle girmiştik
+                    Berkini ilk gorusumuzdu cok garip bi andı valizini bıraktı cocuk yanımıza gelip bi anda yılbası
+                    falan kutladı tabi cok içtigi için o gun
+                    onlar da cok sarhoş olmuştu donuste korsana giderken senin düşmen bide arabada adamla askeri siyasi
+                    sohbet ederken senin arkadan adama zorla alizade açtırıp sesi fulletmen falan cok komik
+                    sşdmfsdşlfsd.
+                </p>
+                <div class="timeline-slider">
+                    <img src="yılbası.jpeg" class="active" alt="14 Şubat 1">
+                    <img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=600&auto=format&fit=crop"
+                        alt="14 Şubat 2">
+
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-item left">
+            <div class="content">
+                <h2>Birlikte İlk Clubımız</h2>
+                <span class="date"></span>
+                <p>O gunun yeri bende ayrıdır normalde clublara gitmeyi hiç sevmem ama o gun ekstra bişeyler oldu yani
+                    seninle ilk clubımdı beraber deliler gibi eglenmştik sonra bi anda memzi abi o kadın ve asyalı
+                    cocukta girince kadroya
+                    dehşet eglenceli bi hal almaya başlamıştı hiç unutamayacagım anlardan biriydi açıkcası.
+                </p>
+                <div class="timeline-slider">
+                    <img src="IMG-20240713-WA0013.jpg" class="active" alt="14 Şubat 1">
+                    <img src="IMG-20240713-WA0023.jpg" alt="14 Şubat 2">
+                    <img src="IMG-20240713-WA0031.jpg" alt="14 Şubat 3">
+
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-item right">
+            <div class="content">
+                <h2>Dogum Gunum</h2>
+                <span class="date">Mayıs 31 2024</span>
+                <p>Benim için cok anlamlı bi dogum gunuydu ilk defa seninle beraber giricektim çünkü heyecanı bi
+                    başkaydı tabiki bizim efsane kadro
+                    değişmedi o zamanlar Berkin ve Özge bizimleydi bana pasta yerine bira almanız o Berkinin Özge'ye
+                    akıllı olcaksın kızım diyip şapkayı çalmaya
+                    çalışması becerememesi falan genel olarak benim için cok guzel bir dogum gunuydu...
+                </p>
+                <div class="timeline-slider">
+                    <img src="IMG-20240713-WA0024.jpg" class="active" alt="14 Şubat 1">
+                    <img src="IMG-20240713-WA0029.jpg" alt="14 Şubat 2">
+
+
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-item left">
+            <div class="content">
+                <h2>Sıcak Yaz Günleri</h2>
+                <span class="date">Haziran 2024</span>
+                <p>Güneşin sıcaklığı mı, senin sıcaklığın mı? Birlikteyken her mevsim bahar bana.</p>
+                <div class="timeline-slider">
+                    <img src="IMG-20240429-WA0006.jpg" class="active" alt="14 Şubat 1">
+
+
+
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-item right">
+            <div class="content">
+                <h2>İstanbul Seyehati</h2>
+                <span class="date">yaz 2025</span>
+                <p>İlk defa beraber İstanbul da bulunmustuk cok guzel ve eglenceli vakit geçirdik ozellikle
+                    black eyed peas konseri seninle gittigimiz en guzel konserlerden biriyi hatta en iyisiydi yarkının
+                    taksicilerle kavgası
+                    gürselin osuramaması benim zorla ugrasarak içeri bira sokmam elifin gursel yuzunden konseri
+                    dinleyememesi falan cok epikti... </p>
+                <div class="timeline-slider">
+                    <img src="WhatsApp Image 2026-01-31 at 01.42.10 (4).jpeg" class="active" alt="14 Şubat 1">
+
+
+
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-item left">
+            <div class="content">
+                <h2>1. Yılımız Yaklaşırken</h2>
+                <span class="date">Aralık 2024</span>
+                <p>Koca bir yılı devirdik neredeyse. İyisiyle, kötüsüyle ama en önemlisi "birlikte".</p>
+                <div class="timeline-slider">
+                    <img src="WhatsApp Image 2026-01-31 at 01.40.31 (6).jpeg" class="active" alt="Yıldönümü 1">
+                    <img src="WhatsApp Image 2026-01-31 at 01.40.31 (7).jpeg" alt="Yıldönümü 2">
+
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-item right">
+            <div class="content">
+                <h2>Hayvanlara Olan Sevgin...</h2>
+                <span class="date">Heroooo</span>
+                <p>Hayvanlara Karşı da bir o kadar nazik ve sevecen bir insansındır yani ben şahidim buna o gulumseyen
+                    kopege gidip tabagındaki
+                    yemegi verdigin gun benim gozumde level atladın yani...
+                </p>
+                <div class="timeline-slider">
+                    <img src="WhatsApp Image 2026-01-31 at 01.54.21.jpeg" class="active" alt="2. Yıl 1">
+                    <img src="WhatsApp Image 2026-01-31 at 01.42.10 (7).jpeg" alt="2. Yıl 2">
+
+
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-item left">
+            <div class="content">
+                <h2>22 YASINA GİRDİNN</h2>
+                <span class="date">26 Aralık 2025</span>
+                <p>Elimde büyüdün be 19 da aldık 22 oldun beraber daha nice nice dogumgunlerimize iyiki dogdun seni çok
+                    seviyorummmm. </p>
+                <div class="timeline-slider">
+                    <img src="WhatsApp Image 2026-01-31 at 01.42.10 (10).jpeg" class="active" alt="2. Yıl 1">
+                    <img src="WhatsApp Image 2026-01-31 at 01.42.10 (9).jpeg" alt="2. Yıl 2">
+                    <img src="WhatsApp Image 2026-01-31 at 01.42.10 (8).jpeg" alt="2. Yıl 2">
+
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-item right">
+            <div class="content">
+                <h2>Tavlada Eline Vermek İse Bir Sanat Oldu Benim İçin</h2>
+                <span class="date">Tarih Yok Her Zaman Yeniyorum</span>
+                <p>Yani aslında sadece tavla da degil genel olarak bilardo okey tavla bu alanlarda bana fena olmayan bir
+                    rakip oldugun için teşekkur ederim ama kendini geliştirmeni oneririm inşallah bir gun benim kadar
+                    iyi bir
+                    oyuncu olmayı başarabilirsin...
+                </p>
+                <div class="timeline-slider">
+                    <img src="WhatsApp Image 2026-01-31 at 01.42.10 (1).jpeg" class="active" alt="14 Şubat 2026">
+                    <img src="WhatsApp Image 2026-01-31 at 01.42.10 (2).jpeg" class="active" alt="14 Şubat 2026">
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+        <div class="timeline-item left">
+            <div class="content">
+                <h2>Bizim Kombiler Slayyy Hocammm</h2>
+                <span class="date">Dress To İmpresssssss</span>
+                <p>Moda konusunda benden ogrenecegin çok şey olsa da sende biraz bişeyler yapabiliyorsun...
+                </p>
+                <div class="timeline-slider">
+                    <img src="IMG-20241003-WA0000.jpg" class="active" alt="14 Şubat 2026">
+                    <img src="IMG-20241003-WA0001.jpg" class="active" alt="14 Şubat 2026">
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+        <div class="timeline-item right">
+            <div class="content">
+                <h2>3. SEVGİLİLER GÜNÜMÜZ</h2>
+                <span class="date">14 SUBAT 2026</span>
+                <p>Tabiki şaka bir yana benimle bu guzel anıları ve buraya sıgdıramadıgım sayısız anıları yaşadıgın ve
+                    yaşattıgın için
+                    sana cok tesekkur ederim iyi ki benimlesin iyi ki sevgilimsin seni cok cok cok cok cok seviyorummmmm
+                    iyi ki varsın... </p>
+                <div class="timeline-slider">
+                    <img src="WhatsApp Image 2026-01-31 at 01.42.10.jpeg" class="active" alt="2. Yıl 1">
+                    <img src="WhatsApp Image 2026-01-31 at 01.40.31 (3).jpeg" alt="2. Yıl 2">
+                    <img src="WhatsApp Image 2026-01-31 at 17.37.50.jpeg" alt="2. Yıl 2">
+
+                    <button class="slider-nav prev-btn" onclick="moveCardSlide(this, -1)">❮</button>
+                    <button class="slider-nav next-btn" onclick="moveCardSlide(this, 1)">❯</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="gallery-section">
+        <h1>En Güzel Anlarımız</h1>
+        <div class="slider-container">
+            <a class="prev" onclick="plusSlides(-1)">❮</a>
+
+            <div class="slide fade" style="display: block;"> <img src="WhatsApp Image 2026-01-31 at 17.39.32.jpeg"
+                    alt="Anı 1">
+            </div>
+            <div class="slide fade">
+                <img src="WhatsApp Image 2026-01-31 at 17.39.04.jpeg" alt="Anı 2">
+            </div>
+            <div class="slide fade">
+                <img src="WhatsApp Image 2026-01-31 at 17.38.44.jpeg" alt="Anı 3">
+            </div>
+            <div class="slide fade">
+                <img src="WhatsApp Image 2026-01-31 at 21.09.27.jpeg" alt="Anı 4">
+            </div>
+            <div class="slide fade">
+                <img src="WhatsApp Image 2026-01-31 at 21.07.04.jpeg" alt="Anı 5">
+            </div>
+            <div class="slide fade">
+                <img src="WhatsApp Image 2026-01-31 at 21.13.56.jpeg" alt="Anı 6">
+            </div>
+            <div class="slide fade">
+                <img src="WhatsApp Image 2026-01-31 at 21.12.49.jpeg" alt="Anı 7">
+            </div>
+
+            <a class="next" onclick="plusSlides(1)">❯</a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="final-msg">Seni Çok Seviyorum...</div>
+        <p>Sonsuza dek sürecek hikayemizin sadece başlangıcı.</p>
+        <br>
+        <button class="btn-love" onclick="alert('Ben de seni çok seviyorum! ❤️ (Bunu duyduğunu biliyorum)')">Beni
+            Seviyor Musun?</button>
+    </footer>
+
+    <script>
+        /* ==========================================================================
+           1. SAYAÇ MANTIĞI (29 Aralık 2023'ten bugüne)
+           ==========================================================================
+        */
+        const startDate = new Date("December 29, 2023 00:00:00").getTime();
+
+        function updateCounter() {
+            const now = new Date().getTime();
+            const difference = now - startDate;
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            document.getElementById("days").innerText = days < 10 ? "0" + days : days;
+            document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
+            document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+            document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+        }
+
+        setInterval(updateCounter, 1000);
+
+        /* ==========================================================================
+           2. TIMELINE SCROLL ANİMASYONU (Aşağı İndikçe Gelme)
+           ==========================================================================
+        */
+        const observerOptions = {
+            threshold: 0.2
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("show");
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll(".timeline-item").forEach(item => {
+            observer.observe(item);
+        });
+
+        function scrollToTimeline() {
+            document.getElementById("timeline").scrollIntoView({ behavior: 'smooth' });
+        }
+
+        /* ==========================================================================
+           3. SLIDER MANTIĞI (FOOTERDAKİ MANUEL) - GÜNCELLENDİ
+           ==========================================================================
+        */
+        let manualSlideIndex = 1;
+        // Sayfa yüklendiğinde ilk slaytı göster
+        showManualSlides(manualSlideIndex);
+
+        // İleri/Geri butonları için fonksiyon
+        function plusSlides(n) {
+            showManualSlides(manualSlideIndex += n);
+        }
+
+        // Slaytı gösteren ana fonksiyon
+        function showManualSlides(n) {
+            let i;
+            // Sadece footer'daki galeriye ait slaytları seç
+            let slides = document.querySelectorAll(".gallery-section .slide");
+
+            if (n > slides.length) { manualSlideIndex = 1 }    // Sona geldiyse başa dön
+            if (n < 1) { manualSlideIndex = slides.length }   // Başa geldiyse sona dön
+
+            // Tüm slaytları gizle
+            for (i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
+            }
+
+            // Aktif slaytı göster
+            slides[manualSlideIndex - 1].style.display = "block";
+        }
+
+        /* ==========================================================================
+           4. ARKAPLAN PARÇACIK EFEKTİ (CANVAS)
+           ==========================================================================
+        */
+        const canvas = document.getElementById("background-canvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+                this.color = `rgba(255, 77, 109, ${Math.random() * 0.5})`;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.size > 0.2) this.size -= 0.01; // Yavaşça kaybolma
+
+                // Ekrandan çıkarsa geri döndür
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height || this.size <= 0.2) {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 3 + 1;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                // Basit kalp şekli yerine daire (performans için) ama kırmızımsı
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 100; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        /* ==========================================================================
+           5. YENİ EKLENEN: KART İÇİ MANUEL SLIDER FONKSİYONU
+           ==========================================================================
+        */
+        function moveCardSlide(btn, step) {
+            // Tıklanan butonun olduğu slider grubunu bul
+            const sliderContainer = btn.closest('.timeline-slider');
+            // O gruptaki tüm resimleri bul
+            const images = sliderContainer.querySelectorAll('img');
+
+            let activeIndex = 0;
+
+            // Şu an hangisi aktif (görünür) durumda onu bul
+            images.forEach((img, index) => {
+                if (img.classList.contains('active')) {
+                    activeIndex = index;
+                    img.classList.remove('active'); // Aktifliği kaldır
+                }
+            });
+
+            // Yeni index'i hesapla
+            let newIndex = activeIndex + step;
+
+            // Döngü sağla (Sona geldiyse başa dön, baştaysa sona git)
+            if (newIndex >= images.length) newIndex = 0;
+            if (newIndex < 0) newIndex = images.length - 1;
+
+            // Yeni resme aktif class'ı ver
+            images[newIndex].classList.add('active');
+        }
+
+    </script>
 </body>
+
 </html>
